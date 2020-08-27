@@ -9,6 +9,12 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
     <UserSecretsId>ecc4f397-7305-4476-9838-39cc3e515cbc</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Model.fs"/>
+    <Compile Include="Hubs/GameHub.fs"/>
+    <Compile Include="Startup.fs"/>
+    <Compile Include="Program.fs"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
