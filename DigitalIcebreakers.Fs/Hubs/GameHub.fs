@@ -199,26 +199,26 @@ type GameHub(logger: ILogger<GameHub>, lobbyManager: LobbyManager, settings: IOp
 
     //public async Task HubMessage(string json) 
     let hubMessage json =
-    async {
-        let lobby = _lobbys.GetLobbyByConnectionId(ConnectionId)
-        if (lobby != null && lobby.CurrentGame != null) then
-            let message = JObject.Parse(json)
-            
-            var system = message["system"];
-            var admin = message["admin"];
-            var client = message["client"];
+        async {
+            let lobby = _lobbys.GetLobbyByConnectionId(ConnectionId)
+            if (lobby != null && lobby.CurrentGame != null) then
+                let message = JObject.Parse(json)
+                
+                var system = message["system"];
+                var admin = message["admin"];
+                var client = message["client"];
 
-            if (system != null)  then 
-                lobby.CurrentGame.OnReceiveSystemMessage(system, ConnectionId)
-            
+                if (system != null)  then 
+                    lobby.CurrentGame.OnReceiveSystemMessage(system, ConnectionId)
+                
 
-            if (admin != null && _lobbys.PlayerIsAdmin(ConnectionId)) then 
-                lobby.CurrentGame.OnReceivePresenterMessage(admin, ConnectionId)
+                if (admin != null && _lobbys.PlayerIsAdmin(ConnectionId)) then 
+                    lobby.CurrentGame.OnReceivePresenterMessage(admin, ConnectionId)
 
 
-            if (client != null) then 
-                lobby.CurrentGame.OnReceivePlayerMessage(client, ConnectionId)
-        }
+                if (client != null) then 
+                    lobby.CurrentGame.OnReceivePlayerMessage(client, ConnectionId)
+            }
 
 type ClientHelper(context: IHubContext<GameHub>) =
 

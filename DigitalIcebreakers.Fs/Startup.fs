@@ -10,6 +10,7 @@ open Microsoft.Extensions.DependencyInjection
 open System.Collections.Generic
 open Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
 open System
+open Model
 
 type AppSettings = {
     AnyEnvironmentVariable: string

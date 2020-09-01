@@ -2,6 +2,7 @@
 open System
 open System.Linq
 open Newtonsoft.Json.Linq;
+open System.Collections.Generic
 //open DigitalIcebreakers.Games
 open System.Threading.Tasks
 
@@ -32,24 +33,28 @@ module Model =
         member x.ExternalId = Guid.NewGuid()
 
     type Lobby( id : Guid,
-                players: list<Player>,
+                playersIn: List<Player>,
                 name: string,
-                currentGame: IGame,
                 number: int) =
+        let mutable players: List<Player> = playersIn
+        [<DefaultValue>]
+        val mutable currentGame: IGame
         member this.Admin = players.SingleOrDefault(fun p -> p.IsAdmin)
         member this.GetPlayers = players.Where(fun p -> (p.IsConnected && not p.IsAdmin)).ToArray()
         member this.PlayerCount = this.GetPlayers.Count()
-        member val CurrentGame = currentGame with get, set
+        member this.GetCurrentGame = this.currentGame
+        member this.SetCurrentGame (value) = this.currentGame <- value
         member val Id = id with get, set
         member val Name = name with get, set
         member val Number = number with get, set
+        member val Players = players with get, set
 
     type Reconnect( playerId: Guid,
                     playerName: string,
                     lobbyId: Guid,
                     lobbyName: string,
                     isAdmin: bool,
-                    players: list<User>,
+                    players: User list,
                     currentGame: string
                     ) =
         member val PlayerId = playerId with get, set
