@@ -24,7 +24,7 @@ type LobbyManager(lobbys: List<Lobby>) =
     
     //internal IEnumerable<Lobby> GetByAdminId(Guid adminId)
     member this.GetByAdminId(adminId: Guid) = 
-        lobbys.Where(fun p -> p.Admin != null && p.Admin.Id = adminId)
+        lobbys.Where(fun p -> not (isNull (box p.Admin)) && p.Admin.Id = adminId)
     
 
     //internal Lobby GetByAdminConnectionId(string connectionId)
@@ -37,7 +37,7 @@ type LobbyManager(lobbys: List<Lobby>) =
 
     //internal Player GetOrCreatePlayer(Guid userId, string userName)
     member this.GetOrCreatePlayer(userId: Guid, userName: string) = 
-        let player = lobbys.SelectMany(fun p -> p.Players)
+        let player = lobbys.SelectMany(fun l -> l.Players :> IEnumerable<Player>)
                             .SingleOrDefault(fun p -> p.Id = userId)
         if (player == null) then
             Player (id = userId, name = userName )
@@ -63,7 +63,7 @@ type LobbyManager(lobbys: List<Lobby>) =
 
     //public Player GetPlayerByConnectionId(string connectionId)
     member this.GetPlayerByConnectionId(connectionId: string) =
-        lobbys.SelectMany(fun p -> p.Players)
+        lobbys.SelectMany(fun p -> p.Players :> IEnumerable<Player>)
                 .SingleOrDefault(fun p -> p.ConnectionId = connectionId)
 
     //public void GetPlayerAndLobby(string connectionId, out Player player, out Lobby lobby)
