@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Linq
 open System.Threading.Tasks
-open DigitalIcebreakers.Games
 open Microsoft.AspNetCore.Http.Connections
 open Microsoft.AspNetCore.Http.Connections.Features
 open Microsoft.AspNetCore.SignalR
@@ -12,15 +11,20 @@ open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Options
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
+open DigitalIcebreakers
+open DigitalIcebreakers.Games
+open DigitalIcebreakers.Model
+open DigitalIcebreakers.Interfaces
 
 
 type HubMessage = {
     system: string
 }
 
-
-
-type GameHub(logger: ILogger<GameHub>, lobbyManager: LobbyManager, settings: IOptions<AppSettings> ,  clients: ClientHelper) =
+type GameHub(logger: ILogger<GameHub>, 
+            lobbyManager: LobbyManager, 
+            settings: IOptions<AppSettings> , 
+            clients: IClientHelper) =
     inherit Hub()
 
    // protected readonly LobbyManager _lobbys;
@@ -125,19 +129,30 @@ type GameHub(logger: ILogger<GameHub>, lobbyManager: LobbyManager, settings: IOp
         }
 
     let getGame name =
-        match name with
-        | "doggos-vs-kittehs" -> DoggosVsKittehs(_send, _lobbys)
-        | "yes-no-maybe"-> YesNoMaybe(_send, _lobbys)
-        | "buzzer"-> Buzzer(_send, _lobbys)
-        | "pong" -> Pong(_send, _lobbys)
-        | "ideawall" -> IdeaWall(_send, _lobbys)
-        | "broadcast" -> Broadcast(_send, _lobbys)
-        | "startstopcontinue" -> StartStopContinue(_send, _lobbys)
-        | "slideshow" -> Slideshow(_send, _lobbys)
-        | "reaction" -> Reaction(_send, _lobbys)
-        | "splat" -> Splat(_send, _lobbys)
-        | "poll" -> Poll(_send, _lobbys)
-        | _ -> failwith (ArgumentOutOfRangeException("Unknown game"))
+        if name = "doggos-vs-kittehs" then
+            DoggosVsKittehs(_send, _lobbys)
+        else if name =  "yes-no-maybe" then
+            YesNoMaybe(_send, _lobbys)
+        else if name = "buzzer" then
+            Buzzer(_send, _lobbys)
+        else if name = "pong" then
+            Pong(_send, _lobbys)
+        else if name = "ideawall" then
+            IdeaWall(_send, _lobbys)
+        else if name ="broadcast" then
+            Broadcast(_send, _lobbys)
+        else if name ="startstopcontinue" then
+            StartStopContinue(_send, _lobbys)
+        else if name = "slideshow" then
+            Slideshow(_send, _lobbys)
+        else if name ="reaction" then
+            Reaction(_send, _lobbys)
+        else if name ="splat" then
+            Splat(_send, _lobbys)
+        else if name = "poll" then
+            Poll(_send, _lobbys)
+        else
+            failwith (ArgumentOutOfRangeException("Unknown game"))
         
 
     let endGame = 
@@ -220,25 +235,30 @@ type GameHub(logger: ILogger<GameHub>, lobbyManager: LobbyManager, settings: IOp
                     lobby.CurrentGame.OnReceivePlayerMessage(client, ConnectionId)
             }
 
-type ClientHelper(context: IHubContext<GameHub>) =
+type ClientHelper(context: IHubContext<GameHub>) = 
 
+    let _clients = context.Clients
+
+    // Had to introduce it to avoid cyclical type dependency
+    interface IClientHelper with
         //public IClientProxy Players(Lobby lobby) {
-        let players lobby =
-            context.Clients.Clients(lobby.Players.Where(p => !p.IsAdmin).Select(p => p.ConnectionId).ToList());
+        member this.Players (lobby: Lobby) =
+            _clients.Clients(lobby.Players.Where(fun p -> not p.IsAdmin)
+                            .Select(fun p -> p.ConnectionId)
+                            .ToList())
         
-
         //public IClientProxy EveryoneInLobby(Lobby lobby)
-        let everyoneInLobby lobby = 
-            context.Clients.Clients(lobby.Players.Select(p => p.ConnectionId).ToList());
-
+        member this.EveryoneInLobby(lobby: Lobby) =    
+            _clients.Clients(lobby.Players.Select(fun p -> p.ConnectionId).ToList());
+        
         //public IClientProxy Admin(Lobby lobby)
-        let admin lobby =
-            context.Clients.Client(lobby.Admin.ConnectionId);
+        member this.Admin(lobby: Lobby) =
+            _clients.Client(lobby.Admin.ConnectionId)
         
         //public IClientProxy Self(string connectionId)
-        let self connectionId = 
-            context.Clients.Client(connectionId);
-        
+        member this.Self(connectionId: string) =
+            _clients.Client(connectionId)
+
         //internal IClientProxy Player(Player player)
-        let player player =
-            context.Clients.Client(player.ConnectionId);
+        member this.Player(player: Player) =
+            _clients.Client(player.ConnectionId);

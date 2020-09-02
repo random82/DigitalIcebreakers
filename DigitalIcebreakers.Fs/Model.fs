@@ -1,13 +1,12 @@
 ﻿namespace DigitalIcebreakers
 open System
 open System.Linq
-open Newtonsoft.Json.Linq;
 open System.Collections.Generic
-//open DigitalIcebreakers.Games
 open System.Threading.Tasks
+open Microsoft.AspNetCore.SignalR
+open Newtonsoft.Json.Linq
 
 module Model =
-
     type IGame =
         abstract member Start:  connectionId: string -> Task
         abstract member Name:  unit -> string
@@ -15,12 +14,15 @@ module Model =
         abstract member OnReceivePlayerMessage: client: JToken -> conenctionId:string -> Task
         abstract member OnReceiveSystemMessage: system: JToken -> conenctionId:string -> Task
 
-    type User(nameIn: string, idIn : Guid) = 
-        let mutable name = nameIn
-        let mutable id = idIn
+    type AppSettings() = 
+        member val AnyEnvironmentVariable = "" with get, set
+
+    type User(name: string, id : Guid) = 
+        let mutable _name = name
+        let mutable _id = id
         do printf "Created User object"
-        member val Name = name with get, set
-        member val Id = id with get, set
+        member val Name = _name with get, set
+        member val Id = _id with get, set
         override x.ToString() =  sprintf "{Name} ({Id.ToString().Split('-')[0]})";
 
     type Player(id: Guid,
@@ -64,4 +66,12 @@ module Model =
         member val IsAdmin = isAdmin with get, set
         member val Players = players with get, set
         member val CurrentGame = currentGame with get, set
+
+    // Had to introduce it to avoid cyclical type dependency
+    type IClientHelper =
+        abstract member Players: lobby: Lobby -> IClientProxy
+        abstract member EveryoneInLobby: lobby: Lobby -> IClientProxy  
+        abstract member Admin: lobby: Lobby -> IClientProxy  
+        abstract member Self: connectionId: string -> IClientProxy
+        abstract member Player: player: Player -> IClientProxy
 
