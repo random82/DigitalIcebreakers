@@ -39,7 +39,7 @@ type LobbyManager(lobbys: List<Lobby>) =
     member this.GetOrCreatePlayer(userId: Guid, userName: string) = 
         let player = lobbys.SelectMany(fun l -> l.Players :> IEnumerable<Player>)
                             .SingleOrDefault(fun p -> p.Id = userId)
-        if (player == null) then
+        if (isNull(box player)) then
             Player (id = userId, name = userName )
         else
             player
