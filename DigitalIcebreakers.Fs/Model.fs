@@ -10,9 +10,9 @@ module Model =
     type IGame =
         abstract member Start:  connectionId: string -> Task
         abstract member Name:  unit -> string
-        abstract member OnReceivePresenterMessage: admin: JToken -> conenctionId:string -> Task
-        abstract member OnReceivePlayerMessage: client: JToken -> conenctionId:string -> Task
-        abstract member OnReceiveSystemMessage: system: JToken -> conenctionId:string -> Task
+        abstract member OnReceivePresenterMessage: admin: JToken * conenctionId:string -> Task
+        abstract member OnReceivePlayerMessage: client: JToken * conenctionId:string -> Task
+        abstract member OnReceiveSystemMessage: system: JToken * conenctionId:string -> Task
 
     type AppSettings() = 
         member val AnyEnvironmentVariable = "" with get, set
@@ -25,15 +25,17 @@ module Model =
         member val Id = _id with get, set
         override x.ToString() =  sprintf "{Name} ({Id.ToString().Split('-')[0]})";
 
-    type Player(id: Guid,
-                name: string) = 
+    type Player(id: Guid, name: string, connectionId: string, isAdmin: bool, isConnected: bool) = 
         inherit User(name, id)
         do printf "Created Player object"
-        member val ConnectionId = "" with get, set
-        member val IsAdmin = false with get, set
-        member val IsConnected = false with get, set 
+        new (id: Guid, name: string) =
+            Player(id, name, "", false, false)
+        member val ConnectionId = connectionId with get, set
+        member val IsAdmin = isAdmin with get, set
+        member val IsConnected = isConnected with get, set 
         member x.ExternalId = Guid.NewGuid()
 
+    [<AllowNullLiteral>]
     type Lobby( id : Guid,
                 playersIn: List<Player>,
                 name: string,

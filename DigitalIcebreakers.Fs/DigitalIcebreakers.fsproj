@@ -12,6 +12,8 @@
   <ItemGroup>
     <Compile Include="Model.fs"/>
     <Compile Include="Hubs/LobbyManager.fs"/>
+    <Compile Include="Games/Game.fs" />
+    <Compile Include="Games/DoggosVsKittehs.fs" />
     <Compile Include="Hubs/Sender.fs"/>
     <Compile Include="Hubs/GameHub.fs"/>
     <Compile Include="Startup.fs"/>

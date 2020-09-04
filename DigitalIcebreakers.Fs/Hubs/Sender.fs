@@ -42,7 +42,7 @@ type Sender(clients: IClientHelper) =
 
     //public async Task PlayerLeft(Lobby lobby, Player player)
     member this.PlayerLeft(lobby: Lobby, player: Player) =
-        clients.Admin(lobby).SendAsync("left", User { id = player.ExternalId, name = player.Name });
+        clients.Admin(lobby).SendAsync("left", User (id = player.ExternalId, name = player.Name ));
 
     //internal async Task CloseLobby(string connectionId, Lobby lobby = null)
     member this.CloseLobby(connectionId: string, lobby: Lobby) =

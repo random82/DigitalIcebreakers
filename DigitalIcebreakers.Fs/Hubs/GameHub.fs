@@ -14,12 +14,14 @@ open Newtonsoft.Json.Linq
 open DigitalIcebreakers
 open DigitalIcebreakers.Games
 open DigitalIcebreakers.Model
+open Microsoft.FSharp.Core.Operators.Unchecked
 
 
 type HubMessage(system: string) = 
     class end
 
 
+[<AllowNullLiteral>]
 type GameHub(logger: ILogger<GameHub>, 
             lobbyManager: LobbyManager, 
             settings: IOptions<AppSettings> , 
@@ -44,7 +46,8 @@ type GameHub(logger: ILogger<GameHub>,
     let getConnectedPlayerCount () = 
         lobbyManager.GetLobbyByConnectionId(connectionId)
                     .Players
-                    .Count(fun p ->  (not p.IsAdmin) && p.IsConnected)
+                    .Where(fun p ->  (not p.IsAdmin) && p.IsConnected)
+                    .Count
     
 
     //public async Task CreateLobby(Guid id, string name, User user)
@@ -54,24 +57,6 @@ type GameHub(logger: ILogger<GameHub>,
         async {
             let payload = JsonConvert.SerializeObject(HubMessage(system = action))
             HubMessage(payload) |> ignore
-        }
-
-    let connect (player: Player, lobby: Lobby) = 
-        async {
-            player.IsConnected <- true
-            if (lobby != null) then
-                logger.LogInformation("{player} {action} to lobby {lobbyName} (#{lobbyNumber}, {lobbyPlayers} players)", player, "re-connected", lobby.Name, lobby.Number, lobby.PlayerCount)
-                
-                _send.Reconnect(lobby, player) |> ignore
-                match player.IsAdmin with
-                | false ->
-                    _send.Joined(lobby, player) |> ignore
-                    systemMessage("join") |> ignore
-                | _ -> do()
-                
-            else 
-                logger.LogInformation("{player} {action} ({transportType})", player, "connected", this.GetTransportType())
-                _send.Connected(connectionId) |> ignore
         }
 
     let getOrCreatePlayer (user:User, connectionId: string) =
@@ -85,17 +70,34 @@ type GameHub(logger: ILogger<GameHub>,
             _send.PlayerLeft(lobby, player) |> ignore
             lobby.Players.Remove(player) |> ignore
         }
+    member this.Connect (player: Player, lobby: Lobby) = 
+        async {
+            player.IsConnected <- true
+            if (lobby != null) then
+                logger.LogInformation("{player} {action} to lobby {lobbyName} (#{lobbyNumber}, {lobbyPlayers} players)", player, "re-connected", lobby.Name, lobby.Number, lobby.PlayerCount)
+                
+                _send.Reconnect(lobby, player) |> ignore
+                if player.IsAdmin = false then
+                    _send.Joined(lobby, player) |> ignore
+                    systemMessage("join") |> ignore
+                else
+                    do()
+            else 
+                logger.LogInformation("{player} {action} ({transportType})", player, "connected", this.GetTransportType())
+                _send.Connected(connectionId) |> ignore
+        }
+
 
     //    public async Task Connect(User user, Guid? lobbyId = null)
-    let connect (user: User, lobbyId: Nullable<Guid>) =
+    member this.Connect (user: User, lobbyId: Nullable<Guid>) =
         async{
             let player = getOrCreatePlayer(user, connectionId)
             let lobby = lobbyManager.GetLobbyByConnectionId(connectionId)
             
-            if (lobbyId.HasValue && lobby != null && lobbyId.Value != lobby.Id) then
+            if (lobbyId.HasValue && lobby != null && lobbyId.Value <> lobby.Id) then
                 leaveLobby(player, lobby) |> ignore
             else
-                connect(player, lobby) |> ignore
+                this.Connect(player, lobby) |> ignore
         }
 
     member this.CloseLobby (lobby: Lobby) =
@@ -119,11 +121,15 @@ type GameHub(logger: ILogger<GameHub>,
                 .ToList()
                 .ForEach(fun l -> async { this.CloseLobby(l) |> ignore } |> Async.StartImmediate)
                 
-            let lobby = lobbyManager.CreateLobby(id, name, new Player { connectionId = Context.ConnectionId, Id = user.Id, IsAdmin = true, IsConnected = true, Name = user.Name })
+            let lobby = lobbyManager.CreateLobby(id, name, Player (connectionId = base.Context.ConnectionId, 
+                                                                    id = user.Id,
+                                                                    isAdmin = true,
+                                                                    isConnected = true,
+                                                                    name = user.Name ))
 
             logger.LogInformation("{action} {lobbyName} for {id}", "created", lobby.Name, id)
 
-            connect(user, Nullable<Guid>(id)) |> ignore
+            this.Connect(user, Nullable<Guid>(id)) |> ignore
         }
 
     member this.GetTransportType() =
@@ -145,28 +151,28 @@ type GameHub(logger: ILogger<GameHub>,
     member this.GetGame name =
         if name = "doggos-vs-kittehs" then
             DoggosVsKittehs(_send, _lobbys)
-        else if name =  "yes-no-maybe" then
-            YesNoMaybe(_send, _lobbys)
-        else if name = "buzzer" then
-            Buzzer(_send, _lobbys)
-        else if name = "pong" then
-            Pong(_send, _lobbys)
-        else if name = "ideawall" then
-            IdeaWall(_send, _lobbys)
-        else if name ="broadcast" then
-            Broadcast(_send, _lobbys)
-        else if name ="startstopcontinue" then
-            StartStopContinue(_send, _lobbys)
-        else if name = "slideshow" then
-            Slideshow(_send, _lobbys)
-        else if name ="reaction" then
-            Reaction(_send, _lobbys)
-        else if name ="splat" then
-            Splat(_send, _lobbys)
-        else if name = "poll" then
-            Poll(_send, _lobbys)
+        // else if name =  "yes-no-maybe" then
+        //     YesNoMaybe(_send, _lobbys)
+        // else if name = "buzzer" then
+        //     Buzzer(_send, _lobbys)
+        // else if name = "pong" then
+        //     Pong(_send, _lobbys)
+        // else if name = "ideawall" then
+        //     IdeaWall(_send, _lobbys)
+        // else if name ="broadcast" then
+        //     Broadcast(_send, _lobbys)
+        // else if name ="startstopcontinue" then
+        //     StartStopContinue(_send, _lobbys)
+        // else if name = "slideshow" then
+        //     Slideshow(_send, _lobbys)
+        // else if name ="reaction" then
+        //     Reaction(_send, _lobbys)
+        // else if name ="splat" then
+        //     Splat(_send, _lobbys)
+        // else if name = "poll" then
+        //     Poll(_send, _lobbys)
         else
-            failwith (ArgumentOutOfRangeException("Unknown game"))
+            raise (ArgumentOutOfRangeException("Unknown game"))
         
 
     member this.EndGame() = 
@@ -174,25 +180,25 @@ type GameHub(logger: ILogger<GameHub>,
             let player, lobby = lobbyManager.GetPlayerAndLobby connectionId 
 
             if (lobby != null && player.IsAdmin) then
-                lobby.SetCurrentGame <- null
+                lobby.SetCurrentGame <- defaultof<(IGame -> unit)>
                 _send.EndGame(lobby) |> ignore
         }
 
     //public async Task ConnectToLobby(User user, Guid lobbyId)
-    member this.ConnectToLobby user lobbyId =
+    member this.ConnectToLobby(user: User, lobbyId: Guid) =
         async{
-            let player = this.GetOrCreatePlayer user ConnectionId
+            let player = getOrCreatePlayer(user, connectionId)
             let existingLobby = lobbyManager.GetLobbyByConnectionId(connectionId)
-            if (existingLobby != null && existingLobby.Id != lobbyId) then
-                this.LeaveLobby(player, existingLobby)
+            if (existingLobby != null && existingLobby.Id <> lobbyId) then
+                leaveLobby(player, existingLobby) |> ignore
 
-            let lobby = lobbyManager.GetLobbyById lobbyId
+            let lobby = lobbyManager.GetLobbyById(lobbyId)
             if (isNull(box lobby)) then
-                _send.closeLobby ConnectionId
+                _send.CloseLobby(connectionId, null) |> ignore
             else
-                if (!lobby.Players.Any(p => p.Id == player.Id)) then
+                if (not (lobby.Players.Any(fun p -> p.Id = player.Id))) then
                     lobby.Players.Add player
-                connect player lobby
+                this.Connect(player, lobby) |> ignore
             
         }
 
@@ -219,24 +225,24 @@ type GameHub(logger: ILogger<GameHub>,
     //public async Task HubMessage(string json) 
     member this.HubMessage json =
         async {
-            let lobby = _lobbys.GetLobbyByConnectionId(ConnectionId)
-            if (lobby != null && lobby.CurrentGame != null) then
+            let lobby = lobbyManager.GetLobbyByConnectionId(connectionId)
+            if (lobby != null && lobby.GetCurrentGame != null) then
                 let message = JObject.Parse(json)
                 
-                var system = message["system"];
-                var admin = message["admin"];
-                var client = message["client"];
+                let system = message.["system"];
+                let admin = message.["admin"];
+                let client = message.["client"];
 
                 if (system != null)  then 
-                    lobby.CurrentGame.OnReceiveSystemMessage(system, ConnectionId)
+                    lobby.GetCurrentGame.OnReceiveSystemMessage(system, connectionId) |> ignore
                 
 
-                if (admin != null && _lobbys.PlayerIsAdmin(ConnectionId)) then 
-                    lobby.CurrentGame.OnReceivePresenterMessage(admin, ConnectionId)
+                if (admin != null && lobbyManager.PlayerIsAdmin(connectionId)) then 
+                    lobby.GetCurrentGame.OnReceivePresenterMessage(admin, connectionId) |> ignore
 
 
                 if (client != null) then 
-                    lobby.CurrentGame.OnReceivePlayerMessage(client, ConnectionId)
+                    lobby.GetCurrentGame.OnReceivePlayerMessage(client, connectionId) |> ignore
             }
 
 type ClientHelper(context: IHubContext<GameHub>) = 
