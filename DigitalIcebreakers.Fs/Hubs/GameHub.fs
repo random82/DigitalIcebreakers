@@ -148,9 +148,9 @@ type GameHub(logger: ILogger<GameHub>,
                 lobby.GetCurrentGame.Start(connectionId) |> ignore
         }
 
-    member this.GetGame name =
+    member this.GetGame(name: string): IGame =
         if name = "doggos-vs-kittehs" then
-            DoggosVsKittehs(_send, _lobbys)
+            DoggosVsKittehs(_send, lobbyManager) :> IGame
         // else if name =  "yes-no-maybe" then
         //     YesNoMaybe(_send, _lobbys)
         // else if name = "buzzer" then

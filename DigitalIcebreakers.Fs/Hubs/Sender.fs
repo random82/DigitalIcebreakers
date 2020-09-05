@@ -3,7 +3,6 @@ namespace DigitalIcebreakers
 open System
 open System.Linq
 open System.Threading.Tasks
-open DigitalIcebreakers.Hubs
 open Microsoft.AspNetCore.SignalR
 open Model
 
@@ -26,9 +25,7 @@ type Sender(clients: IClientHelper) =
     
 
     //public async virtual Task SendGameMessageToPresenter<T>(Lobby lobby, T payload, Player player = null)
-    abstract member SendGameMessageToPresenter<'T>: (lobby: Lobby, 
-                                                    payload: 'T, 
-                                                    [<OptionalArgument>]player: Player) -> Task
+    abstract member SendGameMessageToPresenter<'T> : lobby: Lobby * payload: 'T * [<OptionalArgument>]player: Player -> Task
     default this.SendGameMessageToPresenter<'T>(lobby: Lobby, payload: 'T, [<OptionalArgument>]player: Player) =
         let client = clients.Admin(lobby)
         sendGameMessage(client, GameMessage<'T>(payload, player))
@@ -36,13 +33,21 @@ type Sender(clients: IClientHelper) =
     //public async Task Reconnect(Lobby lobby, Player player)
     member this.Reconnect(lobby: Lobby, player: Player) =
         let players = lobby.Players.Where(fun p -> not p.IsAdmin)
-                                    .Select(fun p -> User { Id = p.ExternalId, Name = p.Name }).ToList();
-        clients.Self(player.ConnectionId).SendAsync("Reconnect", Reconnect { PlayerId = player.Id, PlayerName = player.Name, LobbyName = lobby.Name, LobbyId = lobby.Id, IsAdmin = player.IsAdmin, Players = players, CurrentGame = lobby.CurrentGame?.Name });
+                                    .Select(fun p -> User (id = p.ExternalId, name = p.Name)).ToList();
+        clients.Self(player.ConnectionId)
+                .SendAsync("Reconnect", Reconnect (playerId = player.Id, 
+                                                    playerName = player.Name, 
+                                                    lobbyName = lobby.Name, 
+                                                    lobbyId = lobby.Id, 
+                                                    isAdmin = player.IsAdmin, 
+                                                    players = players, 
+                                                    currentGame = lobby.GetCurrentGame.Name ));
     
 
     //public async Task PlayerLeft(Lobby lobby, Player player)
     member this.PlayerLeft(lobby: Lobby, player: Player) =
-        clients.Admin(lobby).SendAsync("left", User (id = player.ExternalId, name = player.Name ));
+        clients.Admin(lobby)
+                .SendAsync("left", User (id = player.ExternalId, name = player.Name ));
 
     //internal async Task CloseLobby(string connectionId, Lobby lobby = null)
     member this.CloseLobby(connectionId: string, lobby: Lobby) =
@@ -61,7 +66,7 @@ type Sender(clients: IClientHelper) =
 
     //internal async Task Joined(Lobby lobby, Player player)
     member this.Joined(lobby: Lobby, player: Player) =
-        clients.Admin(lobby).SendAsync("joined", User { id = player.ExternalId, name = player.Name });
+        clients.Admin(lobby).SendAsync("joined", User (id = player.ExternalId, name = player.Name))
 
     // internal async Task Connected(string connectionId)
     member this.Connected(connectionId: string) =

@@ -9,7 +9,7 @@ open Newtonsoft.Json.Linq
 module Model =
     type IGame =
         abstract member Start:  connectionId: string -> Task
-        abstract member Name:  unit -> string
+        abstract member Name:  string with get
         abstract member OnReceivePresenterMessage: admin: JToken * conenctionId:string -> Task
         abstract member OnReceivePlayerMessage: client: JToken * conenctionId:string -> Task
         abstract member OnReceiveSystemMessage: system: JToken * conenctionId:string -> Task
@@ -58,7 +58,7 @@ module Model =
                     lobbyId: Guid,
                     lobbyName: string,
                     isAdmin: bool,
-                    players: User list,
+                    players: List<User>,
                     currentGame: string
                     ) =
         member val PlayerId = playerId with get, set
