@@ -41,7 +41,7 @@ type Sender(clients: IClientHelper) =
                                                     lobbyId = lobby.Id, 
                                                     isAdmin = player.IsAdmin, 
                                                     players = players, 
-                                                    currentGame = lobby.GetCurrentGame.Name ));
+                                                    currentGame = lobby.CurrentGame.Name ));
     
 
     //public async Task PlayerLeft(Lobby lobby, Player player)

@@ -3,6 +3,7 @@ open System.Threading.Tasks
 open Newtonsoft.Json.Linq
 open DigitalIcebreakers.Model
 open DigitalIcebreakers
+open Microsoft.FSharp.Core.Operators.Unchecked
 
 [<AbstractClass>]
 type Game(sender: Sender, lobbyManager: LobbyManager) =
@@ -14,6 +15,11 @@ type Game(sender: Sender, lobbyManager: LobbyManager) =
         Task.CompletedTask
 
     interface IGame with
+        member this.Name: string = 
+            defaultof<string>
+        member this.Start(connectionId: string): Task = 
+            Task.CompletedTask
+
         member this.OnReceivePresenterMessage (admin: JToken, conenctionId:string) = 
             Task.CompletedTask
         member this.OnReceivePlayerMessage (client: JToken, conenctionId:string) = 
@@ -40,7 +46,7 @@ type Game(sender: Sender, lobbyManager: LobbyManager) =
         lobbyManager.GetPlayerByConnectionId(connectionId);
     
     member this.GetPlayerCount(connectionId: string) =
-        lobbyManager.GetLobbyByConnectionId(connectionId).PlayerCount
+        lobbyManager.GetLobbyByConnectionId(connectionId).PlayerCount()
 
     member this.GetPlayers(connectionId: string) =
         lobbyManager.GetLobbyByConnectionId(connectionId).GetPlayers()

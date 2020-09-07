@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Threading.Tasks
 open Microsoft.AspNetCore.SignalR
 open Newtonsoft.Json.Linq
+open Microsoft.FSharp.Core.Operators.Unchecked
 
 module Model =
     type IGame =
@@ -41,17 +42,15 @@ module Model =
                 name: string,
                 number: int) =
         let mutable players: List<Player> = playersIn
-        [<DefaultValue>]
-        val mutable currentGame: IGame
+        let currentGame: IGame = defaultof<IGame>
         member this.Admin = players.SingleOrDefault(fun p -> p.IsAdmin)
-        member this.GetPlayers = players.Where(fun p -> (p.IsConnected && not p.IsAdmin)).ToArray()
-        member this.PlayerCount = this.GetPlayers.Count()
-        member this.GetCurrentGame = this.currentGame
-        member this.SetCurrentGame (value) = this.currentGame <- value
+        member this.GetPlayers() = players.Where(fun p -> (p.IsConnected && not p.IsAdmin)).ToArray()
+        member this.PlayerCount() = this.GetPlayers().Count()
         member val Id = id with get, set
         member val Name = name with get, set
         member val Number = number with get, set
         member val Players = players with get, set
+        member val CurrentGame = currentGame with get, set
 
     type Reconnect( playerId: Guid,
                     playerName: string,
