@@ -34,7 +34,7 @@ type Game(sender: Sender, lobbyManager: LobbyManager) =
         let player = lobbyManager.GetPlayerByConnectionId(connectionId)
         this.SendToPlayer(player, payload)
     
-    member this.SendToPresenter(connectionId: string, payload:obj, player: Player) =
+    member this.SendToPresenter(connectionId: string, payload:obj, [<OptionalArgument>]player: Player) =
         let lobby = lobbyManager.GetLobbyByConnectionId(connectionId)
         sender.SendGameMessageToPresenter(lobby, payload, player)
     

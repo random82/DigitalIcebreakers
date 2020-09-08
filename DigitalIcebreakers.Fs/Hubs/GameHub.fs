@@ -121,7 +121,7 @@ type GameHub(logger: ILogger<GameHub>,
                 .ToList()
                 .ForEach(fun l -> async { this.CloseLobby(l) |> ignore } |> Async.StartImmediate)
                 
-            let lobby = lobbyManager.CreateLobby(id, name, Player (connectionId = base.Context.ConnectionId, 
+            let lobby = lobbyManager.CreateLobby(id, name, Player (connectionId = this.Context.ConnectionId, 
                                                                     id = user.Id,
                                                                     isAdmin = true,
                                                                     isConnected = true,
@@ -217,7 +217,7 @@ type GameHub(logger: ILogger<GameHub>,
                 if (isNull(box lobby) = false) then
                     _send.PlayerLeft(lobby, player) |> ignore
             else
-                base.OnDisconnectedAsync(exn) |> ignore
+                this.OnDisconnectedAsync(exn) |> ignore
         }
 
 
