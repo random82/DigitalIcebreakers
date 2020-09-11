@@ -70,8 +70,7 @@ namespace DigitalIcebreakers
 
             app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "ClientApp";
-
+                spa.Options.SourcePath =  Configuration["SpaPath"];
                 if (env.IsDevelopment())
                 {
                     spa.UseReactDevelopmentServer(npmScript: "start");

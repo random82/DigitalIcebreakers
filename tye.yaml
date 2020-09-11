@@ -9,3 +9,5 @@ registry: staff0rd
 services:
 - name: digitalicebreakers
   project: DigitalIcebreakers/DigitalIcebreakers.csproj
+- name: digitalicebreakers.fs
+  project: DigitalIcebreakers.Fs/DigitalIcebreakers.fsproj

@@ -62,7 +62,7 @@ type Startup(configuration: IConfiguration) =
             ) |> ignore
 
             app.UseSpa(fun spa ->
-                spa.Options.SourcePath <- "ClientApp"
+                spa.Options.SourcePath <- configuration.["SpaPath"]
                 match env.IsDevelopment() with
                 | true -> spa.UseReactDevelopmentServer(npmScript = "start")
                 | _ -> do()
