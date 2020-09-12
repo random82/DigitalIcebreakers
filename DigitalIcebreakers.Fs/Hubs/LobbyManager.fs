@@ -14,11 +14,11 @@ type LobbyManager(lobbys: List<Lobby>) =
         lobbyNumber <- lobbyNumber + 1
         let playerList = new List<Player>()
         playerList.Add(player)
-        let lobby = Lobby(id = lobbyId,
-                            number = lobbyNumber,
-                            playersIn = playerList,
-                            name = lobbyName
-                        )
+        let lobby = Lobby()
+        lobby.Id <- lobbyId
+        lobby.Number <- lobbyNumber
+        lobby.Name <- lobbyName
+        lobby.Players <- playerList
         lobbys.Add(lobby)
         lobby
     

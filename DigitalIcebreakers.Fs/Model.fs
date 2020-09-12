@@ -37,20 +37,15 @@ module Model =
         member x.ExternalId = Guid.NewGuid()
 
     [<AllowNullLiteral>]
-    type Lobby( id : Guid,
-                playersIn: List<Player>,
-                name: string,
-                number: int) =
-        let mutable players: List<Player> = playersIn
-        let currentGame: IGame = defaultof<IGame>
-        member this.Admin = players.SingleOrDefault(fun p -> p.IsAdmin)
-        member this.GetPlayers() = players.Where(fun p -> (p.IsConnected && not p.IsAdmin)).ToArray()
+    type Lobby() =
+        member val Id = defaultof<Guid> with get, set
+        member val Name = defaultof<string> with get, set
+        member val Number = defaultof<int> with get, set
+        member val Players = List<Player>() with get, set
+        member val CurrentGame = defaultof<IGame> with get, set
+        member this.Admin = this.Players.SingleOrDefault(fun p -> p.IsAdmin)
+        member this.GetPlayers() = this.Players.Where(fun p -> (p.IsConnected && not p.IsAdmin)).ToArray()
         member this.PlayerCount() = this.GetPlayers().Count()
-        member val Id = id with get, set
-        member val Name = name with get, set
-        member val Number = number with get, set
-        member val Players = players with get, set
-        member val CurrentGame = currentGame with get, set
 
     type Reconnect( playerId: Guid,
                     playerName: string,

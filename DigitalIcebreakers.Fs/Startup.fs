@@ -27,18 +27,16 @@ type Startup(configuration: IConfiguration) =
             services.AddMvc() |> ignore
 
             services.AddSignalR(fun options -> 
-                options.ClientTimeoutInterval <- System.Nullable<System.TimeSpan>()
+                options.ClientTimeoutInterval <- System.Nullable<System.TimeSpan>(TimeSpan(0, 0, 4))
             ) |> ignore
 
             // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(fun configuration ->
-                configuration.RootPath <- "../DigitalIcebreakers.ClientApp/build"
+            services.AddSpaStaticFiles(fun c ->
+                c.RootPath <- (configuration.["SpaPath"] + "/build")
             ) |> ignore
 
             services.Configure<AppSettings>(configuration) |> ignore
-
-            services.AddSingleton<list<Lobby>>() |> ignore
-
+            services.AddSingleton<List<Lobby>>() |> ignore
             services.AddScoped<ClientHelper>() |> ignore
             services.AddScoped<LobbyManager>() |> ignore
 
