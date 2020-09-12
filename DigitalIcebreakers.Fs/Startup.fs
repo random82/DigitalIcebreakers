@@ -37,7 +37,7 @@ type Startup(configuration: IConfiguration) =
 
             services.Configure<AppSettings>(configuration) |> ignore
             services.AddSingleton<List<Lobby>>() |> ignore
-            services.AddScoped<ClientHelper>() |> ignore
+            services.AddScoped<IClientHelper, ClientHelper>() |> ignore
             services.AddScoped<LobbyManager>() |> ignore
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
