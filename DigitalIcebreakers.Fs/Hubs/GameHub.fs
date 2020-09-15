@@ -25,7 +25,7 @@ type HubMessage(system: string) =
 type GameHub(logger: ILogger<GameHub>, 
             lobbyManager: LobbyManager, 
             settings: IOptions<AppSettings> , 
-            clients: IClientHelper) as this =
+            clients: IClientHelper) =
     inherit Hub()
 
    // protected readonly LobbyManager _lobbys;
@@ -49,7 +49,7 @@ type GameHub(logger: ILogger<GameHub>,
         lobbyManager.GetLobbyByConnectionId(this.ConnectionId)
                     .Players
                     .Where(fun p ->  (not p.IsAdmin) && p.IsConnected)
-                    .Count
+                    .Count()
 
     member private this.SystemMessage action = 
         async {
@@ -103,15 +103,13 @@ type GameHub(logger: ILogger<GameHub>,
 
     //    public async Task Connect(User user, Guid? lobbyId = null)
     member this.Connect (user: User, [<OptionalArgument>] lobbyId: Nullable<Guid>) =
-        async{
-            let player = this.GetOrCreatePlayer(user, this.ConnectionId)
-            let lobby = lobbyManager.GetLobbyByConnectionId(this.ConnectionId)
-            
-            if (lobbyId.HasValue && isNull(box lobby) = false && lobbyId.Value <> lobby.Id) then
-                this.LeaveLobby(player, lobby) |> ignore
-            else
-                this.Connect(player, lobby) |> ignore
-        } |> Async.StartAsTask
+        let player = this.GetOrCreatePlayer(user, this.ConnectionId)
+        let lobby = lobbyManager.GetLobbyByConnectionId(this.ConnectionId)
+        
+        if (lobbyId.HasValue && isNull(box lobby) = false && lobbyId.Value <> lobby.Id) then
+            this.LeaveLobby(player, lobby) 
+        else
+            this.Connect(player, lobby) 
 
     member private this.CloseLobby ()  = 
         async {
@@ -120,21 +118,19 @@ type GameHub(logger: ILogger<GameHub>,
         } |> Async.StartAsTask
     
     member this.CreateLobby (id: Guid, name: string, user: User) = 
-        async {
-            lobbyManager.GetByAdminId(user.Id)
-                .ToList()
-                .ForEach(fun l -> async { this.CloseLobby(l) |> ignore } |> Async.StartImmediate)
-                
-            let lobby = lobbyManager.CreateLobby(id, name, Player (connectionId = this.ConnectionId, 
-                                                                    id = user.Id,
-                                                                    isAdmin = true,
-                                                                    isConnected = true,
-                                                                    name = user.Name ))
+        lobbyManager.GetByAdminId(user.Id)
+            .ToList()
+            .ForEach(fun l -> async { this.CloseLobby(l) |> ignore } |> Async.StartImmediate)
+            
+        let lobby = lobbyManager.CreateLobby(id, name, Player (connectionId = this.ConnectionId, 
+                                                                id = user.Id,
+                                                                isAdmin = true,
+                                                                isConnected = true,
+                                                                name = user.Name ))
 
-            logger.LogInformation("{action} {lobbyName} for {id}", "created", lobby.Name, id)
+        logger.LogInformation("{action} {lobbyName} for {id}", "created", lobby.Name, id)
 
-            this.Connect(user, Nullable<Guid>(id)) |> ignore
-        } |> Async.StartAsTask
+        this.Connect(user, Nullable<Guid>(id))
 
     member private this.GetTransportType() =
         this.Context.Features.Get<IHttpTransportFeature>().TransportType;
