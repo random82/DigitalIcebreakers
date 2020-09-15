@@ -22,6 +22,8 @@ module Model =
         let mutable _name = name
         let mutable _id = id
         do printf "Created User object"
+        new () = 
+            User(defaultof<string>, defaultof<Guid>)
         member val Name = _name with get, set
         member val Id = _id with get, set
         override x.ToString() =  sprintf "{Name} ({Id.ToString().Split('-')[0]})";
@@ -29,6 +31,8 @@ module Model =
     type Player(id: Guid, name: string, connectionId: string, isAdmin: bool, isConnected: bool) = 
         inherit User(name, id)
         do printf "Created Player object"
+        new () = 
+            Player(defaultof<Guid>, defaultof<string>, defaultof<string>, false, false )
         new (id: Guid, name: string) =
             Player(id, name, "", false, false)
         member val ConnectionId = connectionId with get, set
