@@ -20,6 +20,8 @@ module Program =
         let config = LoggerConfiguration()
                         .MinimumLevel.Information()
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                        .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Debug)
+                        .MinimumLevel.Override("Microsoft.AspNetCore.Http.Connections", LogEventLevel.Debug)
                         .Enrich.FromLogContext()
                         .WriteTo.Console(outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
                         .WriteTo.Trace()
@@ -37,6 +39,7 @@ module Program =
                             shared = true,
                             flushToDiskInterval = System.Nullable<TimeSpan>(TimeSpan.FromSeconds(1.0))
                         )
+                        
                         .WriteTo.ApplicationInsights(TelemetryConverter.Traces) |> ignore
         | _ -> do()
 
