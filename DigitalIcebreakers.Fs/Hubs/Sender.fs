@@ -5,6 +5,7 @@ open System.Linq
 open System.Threading.Tasks
 open Microsoft.AspNetCore.SignalR
 open Model
+open Microsoft.FSharp.Core.Operators.Unchecked
 
 type Sender(clients: IClientHelper) =
 
@@ -34,6 +35,7 @@ type Sender(clients: IClientHelper) =
     member this.Reconnect(lobby: Lobby, player: Player) =
         let players = lobby.Players.Where(fun p -> not p.IsAdmin)
                                     .Select(fun p -> User (id = p.ExternalId, name = p.Name)).ToList();
+        
         clients.Self(player.ConnectionId)
                 .SendAsync("Reconnect", Reconnect (playerId = player.Id, 
                                                     playerName = player.Name, 
@@ -41,7 +43,7 @@ type Sender(clients: IClientHelper) =
                                                     lobbyId = lobby.Id, 
                                                     isAdmin = player.IsAdmin, 
                                                     players = players, 
-                                                    currentGame = lobby.CurrentGame.Name ));
+                                                    currentGame = if isNull(box lobby.CurrentGame) then defaultof<string> else lobby.CurrentGame.Name));
     
 
     //public async Task PlayerLeft(Lobby lobby, Player player)
