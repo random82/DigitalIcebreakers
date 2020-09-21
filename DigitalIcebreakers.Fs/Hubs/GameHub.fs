@@ -149,6 +149,8 @@ type GameHub(logger: ILogger<GameHub>,
     member private this.GetGame(name: string): IGame =
         if name = "doggos-vs-kittehs" then
             DoggosVsKittehs(_send, lobbyManager) :> IGame
+        else if name = "poll" then
+            Poll(_send, lobbyManager) :> IGame
         // else if name =  "yes-no-maybe" then
         //     YesNoMaybe(_send, _lobbys)
         // else if name = "buzzer" then
@@ -167,8 +169,6 @@ type GameHub(logger: ILogger<GameHub>,
         //     Reaction(_send, _lobbys)
         // else if name ="splat" then
         //     Splat(_send, _lobbys)
-        // else if name = "poll" then
-        //     Poll(_send, _lobbys)
         else
             raise (ArgumentOutOfRangeException("Unknown game"))
         

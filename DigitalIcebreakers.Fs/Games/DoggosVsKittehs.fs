@@ -18,7 +18,7 @@ type DoggosVsKittehs(sender: Sender,  lobbyManager: LobbyManager) =
     inherit Game(sender, lobbyManager)
     
     let _results: Dictionary<Guid, int> = Dictionary<Guid, int>();
-    member this.Name = "doggos-vs-kittehs";
+    member this.Name = "doggos-vs-kittehs"
 
     interface IGame with
         member this.OnReceivePlayerMessage(payload: JToken, connectionId: string) =
