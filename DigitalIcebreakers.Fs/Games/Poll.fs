@@ -41,4 +41,4 @@ type Poll(sender: Sender, lobbyManager: LobbyManager) =
                 let system = payload.ToString();
                 match (system) with
                 | "join" -> this.SendToPlayer(connectionId, _lastAnswers)
-                | _ -> Task.CompletedTask
+                | _ -> async{ do() }

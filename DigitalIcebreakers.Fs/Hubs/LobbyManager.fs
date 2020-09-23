@@ -67,8 +67,8 @@ type LobbyManager(lobbys: List<Lobby>) =
                 .SingleOrDefault(fun p -> p.ConnectionId = connectionId)
 
     //public void GetPlayerAndLobby(string connectionId, out Player player, out Lobby lobby)
-    member this.GetPlayerAndLobby(connectionId: string) =
-        let player = this.GetPlayerByConnectionId(connectionId)
-        let lobby = this.GetLobbyByConnectionId(connectionId)
-        (player, lobby)
+    member this.GetPlayerAndLobby(connectionId: string, player: outref<Player>, lobby: outref<Lobby>) =
+        player <- this.GetPlayerByConnectionId(connectionId)
+        lobby <- this.GetLobbyByConnectionId(connectionId)
+        do()
     

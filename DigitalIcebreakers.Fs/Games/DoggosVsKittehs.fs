@@ -29,13 +29,14 @@ type DoggosVsKittehs(sender: Sender,  lobbyManager: LobbyManager) =
                 if (not (String.IsNullOrWhiteSpace(client))) then
                     let result, value = Int32.TryParse(client)
                     if (result) then
-                        _results.[this.GetPlayerByConnectionId(connectionId).Id] <- value
+                        let id = this.GetPlayerByConnectionId(connectionId).Id
+                        _results.[id] <- value
                 else 
                     do()
                 
                 let result = DoggosVsKittehsResult(doggos = _results.Where(fun p -> p.Value = 0).Count(), 
                                                     kittehs = _results.Where(fun p -> p.Value = 1).Count())
                 result.Undecided <- this.GetPlayerCount(connectionId) - result.Kittehs - result.Doggos;
-                this.SendToPresenter(connectionId, result) |> Async.AwaitTask |> ignore
-            } |> Async.StartAsTask :> Task
+                do! this.SendToPresenter(connectionId, result)
+            }
         

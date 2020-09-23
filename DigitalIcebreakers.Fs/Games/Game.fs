@@ -1,31 +1,30 @@
 namespace DigitalIcebreakers.Games
-open System.Threading.Tasks
-open Newtonsoft.Json.Linq
-open DigitalIcebreakers.Model
-open DigitalIcebreakers
+
 open Microsoft.FSharp.Core.Operators.Unchecked
+open Newtonsoft.Json.Linq
+open DigitalIcebreakers
+open DigitalIcebreakers.Model
 
 [<AbstractClass>]
 type Game(sender: Sender, lobbyManager: LobbyManager) =
 
     //public abstract string Name { get; }
     
-    abstract member Start: connectionId: string -> Task
+    abstract member Start: connectionId: string -> Async<unit>
     default this.Start (connectionId: string) = 
-        Task.CompletedTask
+        async{ do() }
 
     interface IGame with
         member this.Name: string = 
             defaultof<string>
-        member this.Start(connectionId: string): Task = 
-            Task.CompletedTask
-
+        member this.Start(connectionId: string) = 
+            async{ do() }
         member this.OnReceivePresenterMessage (admin: JToken, conenctionId:string) = 
-            Task.CompletedTask
+            async{ do() }
         member this.OnReceivePlayerMessage (client: JToken, conenctionId:string) = 
-            Task.CompletedTask
+            async{ do() }
         member this.OnReceiveSystemMessage (systen: JToken, conenctionId:string) = 
-            Task.CompletedTask
+            async{ do() }
 
     member this.SendToPlayer(player: Player, payload: obj) =
         sender.SendGameMessageToPlayer(player, payload)

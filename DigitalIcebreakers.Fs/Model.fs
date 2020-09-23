@@ -9,11 +9,11 @@ open Microsoft.FSharp.Core.Operators.Unchecked
 
 module Model =
     type IGame =
-        abstract member Start:  connectionId: string -> Task
+        abstract member Start:  connectionId: string -> Async<unit>
         abstract member Name:  string with get
-        abstract member OnReceivePresenterMessage: admin: JToken * conenctionId:string -> Task
-        abstract member OnReceivePlayerMessage: client: JToken * conenctionId:string -> Task
-        abstract member OnReceiveSystemMessage: system: JToken * conenctionId:string -> Task
+        abstract member OnReceivePresenterMessage: admin: JToken * conenctionId:string -> Async<unit>
+        abstract member OnReceivePlayerMessage: client: JToken * conenctionId:string -> Async<unit>
+        abstract member OnReceiveSystemMessage: system: JToken * conenctionId:string -> Async<unit>
 
     type AppSettings() = 
         member val AnyEnvironmentVariable = "" with get, set
